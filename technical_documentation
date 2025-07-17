@@ -1,0 +1,107 @@
+Technical Change Log
+Date: July 17, 2025
+Project: Custom WordPress Theme & Plugin for Multisite
+Authorship: Sharon Clapp, Digital Resources & AI Librarian; Gemini, Co-developer.
+
+This document outlines the specific files that were created or modified to implement custom features and resolve technical issues.
+
+1. Custom Plugin: ccsu-mega-menu
+A dedicated plugin was created to house all major custom functionality, ensuring portability and separation from theme presentation.
+
+Location: /wp-content/plugins/ccsu-mega-menu/
+
+File: ccsu-mega-menu.php
+Location: /wp-content/plugins/ccsu-mega-menu/ccsu-mega-menu.php
+
+Changes:
+
+Plugin Header: Defines the plugin's name, version, and author.
+
+File Includes: Safely includes all necessary component files (post-types.php, menu-fields.php, class-ccsu-mega-menu-walker.php) using the after_setup_theme hook to prevent fatal errors related to load order.
+
+Walker Replacement: Contains the omm_use_custom_walker() function, which filters wp_nav_menu_args to intelligently replace the default theme walker with our custom walker for the 'secondary_bar_menu' location only.
+
+Stylesheet Enqueue: Enqueues the plugin's custom stylesheet (our-mega-menu.css).
+
+File: includes/post-types.php
+Location: /wp-content/plugins/ccsu-mega-menu/includes/post-types.php
+
+Changes:
+
+"Mega Menus" CPT: Registers a new Custom Post Type (our_mega_menu) to allow administrators to build mega menu layouts using the Block Editor.
+
+"Header Content" CPT: Registers a second Custom Post Type (our_header_content) to allow administrators to build the content overlay for the homepage header slideshow using the Block Editor.
+
+File: includes/menu-fields.php
+Location: /wp-content/plugins/ccsu-mega-menu/includes/menu-fields.php
+
+Changes:
+
+Adds Custom Field: Hooks into wp_nav_menu_item_custom_fields to add a dropdown select box ("Mega Menu Content") to top-level menu items in the Appearance > Menus screen.
+
+Saves Custom Field: Hooks into wp_update_nav_menu_item to save the selected Mega Menu Post ID as metadata for the menu item.
+
+File: includes/class-ccsu-mega-menu-walker.php
+Location: /wp-content/plugins/ccsu-mega-menu/includes/class-ccsu-mega-menu-walker.php
+
+Changes:
+
+Extends WP_Bootstrap_Navwalker: The custom class Our_Mega_Menu_Walker inherits from the theme's default walker.
+
+Custom Rendering Logic: Overrides the start_el() and end_el() methods. It checks if a menu item has a mega menu assigned. If so, it takes full control of rendering, building the <li> and <a> tags itself and injecting the block content rendered by do_blocks(). It also prevents child menu items from being rendered. If no mega menu is assigned, it passes control back to the parent walker.
+
+File: assets/css/our-mega-menu.css
+Location: /wp-content/plugins/ccsu-mega-menu/assets/css/our-mega-menu.css
+
+Changes:
+
+Mega Menu Styling: Contains the necessary CSS to make the dropdowns full-width (position-static on the <li>).
+
+Contained Content: Includes rules to create a max-width container for the content within the full-width mega menu background, ensuring a clean layout.
+
+2. Theme: wp-bootstrap-starter
+Core theme files were modified to integrate new features and fix bugs.
+
+Location: /wp-content/themes/wp-bootstrap-starter/
+
+File: functions.php
+Location: /wp-content/themes/wp-bootstrap-starter/functions.php
+
+Changes:
+
+Resolved Fatal Error: Removed faulty, leftover experimental widget registration code (register_sidebar and register_widget calls) that was causing a fatal array_merge() error in the Customizer.
+
+Consolidated Menu Registration: All register_nav_menus() calls were consolidated into a single function call within the wp_bootstrap_starter_setup function to eliminate conflicts.
+
+File: inc/customizer.php
+Location: /wp-content/themes/wp-bootstrap-starter/inc/customizer.php
+
+Changes:
+
+Resolved Fatal Error: Corrected multiple errors from the original theme code, including a typo in a section name and the assignment of controls to a non-existent panel.
+
+Removed Old Header Banner: Programmatically removed the theme's original, broken "Header Banner" section using $wp_customize->remove_section( 'header_image' ).
+
+Added Custom Slideshow Controls: Implemented a new "Header Slideshow" section with controls for up to 6 image uploads.
+
+Added Dynamic Logo Controls: Implemented a "Custom Logos" section with image uploaders for the topmost and secondary navigation bars.
+
+File: header.php
+Location: /wp-content/themes/wp-bootstrap-starter/header.php
+
+Changes:
+
+Resolved Responsive Issues: Rebuilt the HTML structure for both navigation bars to follow Bootstrap 4 best practices, adding navbar-expand-lg, navbar-dark, and unique IDs for the collapsible containers to ensure correct mobile toggling.
+
+Implemented Dynamic Logos: Replaced hard-coded <img> tags with PHP logic that uses get_theme_mod() to display the logos uploaded via the Customizer.
+
+Implemented Custom Slideshow: Replaced the theme's original header banner code with new PHP logic that fetches the custom slideshow images and renders them in a CSS-animated container.
+
+Implemented Dynamic Header Content: Replaced the hard-coded header title, tagline, and search form with PHP logic that fetches and renders the selected "Header Content" block using do_blocks().
+
+File: style.css
+Location: /wp-content/themes/wp-bootstrap-starter/style.css
+
+Changes:
+
+Added Slideshow Animation: Contains the @keyframes and associated CSS rules to create a cross-fading animation for the custom header slideshow.
