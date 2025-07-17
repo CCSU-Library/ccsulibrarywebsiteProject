@@ -1,107 +1,99 @@
-Technical Change Log
-Date: July 17, 2025
-Project: Custom WordPress Theme & Plugin for Multisite
-Authorship: Sharon Clapp, Digital Resources & AI Librarian; Gemini, Co-developer.
+# Theme & Plugin Development Summary
 
-This document outlines the specific files that were created or modified to implement custom features and resolve technical issues.
+**Date:** July 17, 2025
+**Project:** Custom WordPress Theme based on "WP Bootstrap Starter" for a Multisite Environment.
+**Authorship:** Sharon Clapp, Digital Resources & AI Librarian; Gemini, Co-developer.
 
-1. Custom Plugin: ccsu-mega-menu
-A dedicated plugin was created to house all major custom functionality, ensuring portability and separation from theme presentation.
+This document summarizes the custom development work, new features, and significant bug fixes implemented for the theme.
 
-Location: /wp-content/plugins/ccsu-mega-menu/
+---
 
-File: ccsu-mega-menu.php
-Location: /wp-content/plugins/ccsu-mega-menu/ccsu-mega-menu.php
+## 1. Custom Plugin: "CCSU Mega Menu"
 
-Changes:
+To provide advanced functionality in a portable and maintainable way, we created a dedicated plugin named `ccsu-mega-menu`. This plugin is responsible for all major feature enhancements beyond standard theme presentation.
 
-Plugin Header: Defines the plugin's name, version, and author.
+### Key Features:
 
-File Includes: Safely includes all necessary component files (post-types.php, menu-fields.php, class-ccsu-mega-menu-walker.php) using the after_setup_theme hook to prevent fatal errors related to load order.
+#### a. Block-Based Mega Menus
 
-Walker Replacement: Contains the omm_use_custom_walker() function, which filters wp_nav_menu_args to intelligently replace the default theme walker with our custom walker for the 'secondary_bar_menu' location only.
+* **Functionality:** Allows administrators to build complex, multi-column dropdown menus using the native WordPress Block Editor.
 
-Stylesheet Enqueue: Enqueues the plugin's custom stylesheet (our-mega-menu.css).
+* **Implementation:**
 
-File: includes/post-types.php
-Location: /wp-content/plugins/ccsu-mega-menu/includes/post-types.php
+    * A **"Mega Menus" Custom Post Type** was created. Users can go to `Mega Menus > Add New` to build a menu layout with any combination of blocks (columns, headings, images, text, etc.).
 
-Changes:
+    * A **"Mega Menu Content" dropdown** was added to the `Appearance > Menus` screen. This allows an administrator to assign a saved block layout to any top-level menu item.
 
-"Mega Menus" CPT: Registers a new Custom Post Type (our_mega_menu) to allow administrators to build mega menu layouts using the Block Editor.
+    * A **Custom Nav Walker (`Our_Mega_Menu_Walker`)** was developed. This PHP class extends the theme's default Bootstrap Navwalker. It intelligently detects when a menu item has a mega menu assigned and replaces the standard dropdown with the rendered block content.
 
-"Header Content" CPT: Registers a second Custom Post Type (our_header_content) to allow administrators to build the content overlay for the homepage header slideshow using the Block Editor.
+#### b. Dynamic Header Content
 
-File: includes/menu-fields.php
-Location: /wp-content/plugins/ccsu-mega-menu/includes/menu-fields.php
+* **Functionality:** Replaces the static, hard-coded content in the homepage header (title, tagline, search form) with a fully editable block-based section.
 
-Changes:
+* **Implementation:**
 
-Adds Custom Field: Hooks into wp_nav_menu_item_custom_fields to add a dropdown select box ("Mega Menu Content") to top-level menu items in the Appearance > Menus screen.
+    * A **"Header Content" Custom Post Type** was added to the plugin. Users can go to `Header Content > Add New` to build the overlay content for the homepage slideshow.
 
-Saves Custom Field: Hooks into wp_update_nav_menu_item to save the selected Mega Menu Post ID as metadata for the menu item.
+    * A **Customizer Control** was added under `Appearance > Customize > Header Slideshow` that allows the user to select which "Header Content" post to display.
 
-File: includes/class-ccsu-mega-menu-walker.php
-Location: /wp-content/plugins/ccsu-mega-menu/includes/class-ccsu-mega-menu-walker.php
+    * The `header.php` template was updated to dynamically render the selected block content, providing full control over the header's layout to the site administrator.
 
-Changes:
+## 2. Theme Customizations
 
-Extends WP_Bootstrap_Navwalker: The custom class Our_Mega_Menu_Walker inherits from the theme's default walker.
+Significant modifications were made to the `wp-bootstrap-starter` theme files to integrate our custom features and resolve conflicts.
 
-Custom Rendering Logic: Overrides the start_el() and end_el() methods. It checks if a menu item has a mega menu assigned. If so, it takes full control of rendering, building the <li> and <a> tags itself and injecting the block content rendered by do_blocks(). It also prevents child menu items from being rendered. If no mega menu is assigned, it passes control back to the parent walker.
+### Key Features:
 
-File: assets/css/our-mega-menu.css
-Location: /wp-content/plugins/ccsu-mega-menu/assets/css/our-mega-menu.css
+#### a. Custom Header Slideshow
 
-Changes:
+* **Functionality:** Replaced the theme's broken "Header Banner" feature with a stable, custom-built slideshow.
 
-Mega Menu Styling: Contains the necessary CSS to make the dropdowns full-width (position-static on the <li>).
+* **Implementation:**
 
-Contained Content: Includes rules to create a max-width container for the content within the full-width mega menu background, ensuring a clean layout.
+    * A **"Header Slideshow" section** was added to the `Appearance > Customize` screen. It includes controls for uploading up to 6 images.
 
-2. Theme: wp-bootstrap-starter
-Core theme files were modified to integrate new features and fix bugs.
+    * The old "Header Banner" section was programmatically removed to avoid confusion.
 
-Location: /wp-content/themes/wp-bootstrap-starter/
+    * The `header.php` file was modified to fetch these images and render them as a CSS-animated, cross-fading background slideshow on the homepage.
 
-File: functions.php
-Location: /wp-content/themes/wp-bootstrap-starter/functions.php
+    * The animation duration and delays are calculated dynamically in PHP based on the number of images uploaded, ensuring a smooth presentation.
 
-Changes:
+#### b. Dynamic Logos for Navigation Bars
 
-Resolved Fatal Error: Removed faulty, leftover experimental widget registration code (register_sidebar and register_widget calls) that was causing a fatal array_merge() error in the Customizer.
+* **Functionality:** Allows administrators to upload unique logos for the topmost utility bar and the secondary navigation bar via the Customizer.
 
-Consolidated Menu Registration: All register_nav_menus() calls were consolidated into a single function call within the wp_bootstrap_starter_setup function to eliminate conflicts.
+* **Implementation:**
 
-File: inc/customizer.php
-Location: /wp-content/themes/wp-bootstrap-starter/inc/customizer.php
+    * A **"Custom Logos" section** was added to the `Appearance > Customize` screen with two image upload controls.
 
-Changes:
+    * The `header.php` file was updated to check if a logo has been set for each location and display it. If no logo is set, it provides a graceful fallback (e.g., displaying the site title).
 
-Resolved Fatal Error: Corrected multiple errors from the original theme code, including a typo in a section name and the assignment of controls to a non-existent panel.
+## 3. Major Bug Fixes & Troubleshooting
 
-Removed Old Header Banner: Programmatically removed the theme's original, broken "Header Banner" section using $wp_customize->remove_section( 'header_image' ).
+We systematically diagnosed and resolved several complex issues.
 
-Added Custom Slideshow Controls: Implemented a new "Header Slideshow" section with controls for up to 6 image uploads.
+#### a. Resolved: Persistent Fatal Error in WordPress Customizer
 
-Added Dynamic Logo Controls: Implemented a "Custom Logos" section with image uploaders for the topmost and secondary navigation bars.
+* **Symptom:** A fatal `TypeError: array_merge(): Argument #3 must be of type array, false given` would crash the Customizer, especially on the Multisite subsite.
 
-File: header.php
-Location: /wp-content/themes/wp-bootstrap-starter/header.php
+* **Diagnosis:** Through a process of elimination (checking `functions.php`, `customizer.php`, other theme files, plugins, and the database), we determined the root cause was faulty data being passed to the Customizer's widget registration function.
 
-Changes:
+* **Solution:** We identified and removed leftover experimental widget code from the theme's `functions.php` file and corrected errors in the `inc/customizer.php` file where core WordPress sections were being improperly re-declared.
 
-Resolved Responsive Issues: Rebuilt the HTML structure for both navigation bars to follow Bootstrap 4 best practices, adding navbar-expand-lg, navbar-dark, and unique IDs for the collapsible containers to ensure correct mobile toggling.
+#### b. Resolved: Fatal Error on Image Cropping
 
-Implemented Dynamic Logos: Replaced hard-coded <img> tags with PHP logic that uses get_theme_mod() to display the logos uploaded via the Customizer.
+* **Symptom:** Attempting to crop an image in the "Header Banner" section resulted in a `DivisionByZeroError`.
 
-Implemented Custom Slideshow: Replaced the theme's original header banner code with new PHP logic that fetches the custom slideshow images and renders them in a CSS-animated container.
+* **Diagnosis:** The theme was not correctly providing `width` and `height` dimensions to the WordPress image cropping tool.
 
-Implemented Dynamic Header Content: Replaced the hard-coded header title, tagline, and search form with PHP logic that fetches and renders the selected "Header Content" block using do_blocks().
+* **Solution:** We bypassed the broken feature entirely by implementing our own custom slideshow functionality, which does not rely on the theme's faulty header image implementation.
 
-File: style.css
-Location: /wp-content/themes/wp-bootstrap-starter/style.css
+#### c. Resolved: Navigation Bar Responsive & Stacking Issues
 
-Changes:
+* **Symptom:** Navigation menus were stacking vertically on all screen sizes, toggler buttons were invisible, and dropdowns were losing their styling.
 
-Added Slideshow Animation: Contains the @keyframes and associated CSS rules to create a cross-fading animation for the custom header slideshow.
+* **Diagnosis:** The `<nav>` elements were missing the necessary `navbar-expand-lg` class to control their collapse breakpoint. The HTML structure was also incorrect, preventing proper flexbox alignment and causing CSS conflicts.
+
+* **Solution:** We rebuilt the `header.php` navbar structures to follow Bootstrap 4 best practices, adding the correct classes (`navbar-expand-lg`, `navbar-dark`), ensuring unique IDs for collapsible elements, and using flexbox utilities (`d-flex`, `justify-content-between`) to manage the layout of the split navigation bar.
+
+This documentation provides a clear overview of the custom architecture and the solutions implemented to create a stable, flexible, and user-friendly theme.
